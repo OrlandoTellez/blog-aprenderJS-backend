@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { postsTable } from "../db/schema";
-import { db } from "../db/index"; // ✅ IMPORTA LA INSTANCIA CORRECTA
+import { db } from "../db/index"; 
 
 export const postsRoutes = Router();
 
@@ -23,7 +23,6 @@ postsRoutes.post("/", async (req, res) => {
     }
 });
 
-// Obtener todos los posts
 postsRoutes.get("/", async (_req, res) => {
     try {
         const posts = await db.select().from(postsTable);
@@ -34,7 +33,6 @@ postsRoutes.get("/", async (_req, res) => {
     }
 });
 
-// Obtener post por slug
 postsRoutes.get("/:slug", async (req, res) => {
     const { slug } = req.params;
 
@@ -42,7 +40,7 @@ postsRoutes.get("/:slug", async (req, res) => {
         const posts = await db
             .select()
             .from(postsTable)
-            .where((row) => row.slug.eq(slug)); // si usas drizzle <0.45.0 usa `eq()` en condiciones
+            .where((row) => row.slug.eq(slug)); nes
 
         if (posts.length === 0) {
             return res.status(404).json({ error: "Post no encontrado" });

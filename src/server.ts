@@ -4,8 +4,6 @@ import dotenv from "dotenv"
 import { postsRoutes } from "./routes/posts"
 import "dotenv/config"
 
-
-
 const app = express()
 const PORT = process.env.PORT || 3000
 
