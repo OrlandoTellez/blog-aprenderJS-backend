@@ -1,46 +1,56 @@
-import { Router } from "express"
-import { postsTable } from "../db/schema"
-import { drizzle } from "drizzle-orm/libsql"
+import { Router } from "express";
+import { postsTable } from "../db/schema";
+import { db } from "../db/index"; // ✅ IMPORTA LA INSTANCIA CORRECTA
 
-export const postsRoutes = Router()
+export const postsRoutes = Router();
 
-interface postsProps {
-    title: string
-    content: string
-    slug: string
+interface Post {
+    title: string;
+    content: string;
+    slug: string;
 }
 
-type typeSlug = postsProps["slug"]
-
-const db = drizzle(process.env.DB_FILE_NAME!)
-
-
-
 // Crear nuevo post
-postsRoutes.post("/", (req, res) => {
-    //const { title, content }: Pick<postsProps, "title" | "content"> = req.body
-
-})
-
-// Obtener todos los posts (solo metadata)
-postsRoutes.get("/", async (req, res) => {
-    const newPost = {
-        id: 1,
-        title: "Primer articulo",
-        slug: "primer-articulo",
-        content: "Este es el contenido de uno de los primeros articulos de mi blog"
-    };
+postsRoutes.post("/", async (req, res) => {
+    const { title, content, slug }: Post = req.body;
 
     try {
-        const peticion = await db.insert(postsTable).values(newPost);
-        res.status(200).json(peticion);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error al insertar el post" });
+        const result = await db.insert(postsTable).values({ title, content, slug });
+        res.status(201).json({ success: true, result });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error al insertar el post" });
     }
-})
+});
 
-// Obtener un post por slug (con contenido)
-postsRoutes.get("/:slug", (req, res) => {
+// Obtener todos los posts
+postsRoutes.get("/", async (_req, res) => {
+    try {
+        const posts = await db.select().from(postsTable);
+        res.json(posts);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error al obtener posts" });
+    }
+});
 
-})
+// Obtener post por slug
+postsRoutes.get("/:slug", async (req, res) => {
+    const { slug } = req.params;
+
+    try {
+        const posts = await db
+            .select()
+            .from(postsTable)
+            .where((row) => row.slug.eq(slug)); // si usas drizzle <0.45.0 usa `eq()` en condiciones
+
+        if (posts.length === 0) {
+            return res.status(404).json({ error: "Post no encontrado" });
+        }
+
+        res.json(posts[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error al obtener el post" });
+    }
+});
